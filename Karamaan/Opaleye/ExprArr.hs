@@ -1,5 +1,9 @@
-{-# LANGUAGE FlexibleContexts, DeriveFunctor, MultiParamTypeClasses #-}
-
+{-# LANGUAGE
+    DeriveFunctor
+  , FlexibleContexts
+  , FlexibleInstances
+  , MultiParamTypeClasses
+  #-}
 module Karamaan.Opaleye.ExprArr
     ( Scope
     , ExprArr
@@ -48,29 +52,29 @@ module Karamaan.Opaleye.ExprArr
     ) where
 
 import Control.Applicative (Applicative (..))
-import Prelude hiding (or, and, not, mod, abs, signum)
-import qualified Data.Map as Map
-import Data.Map (Map)
-import Database.HaskellDB.PrimQuery (PrimExpr, extend, Literal)
-import Control.Arrow (Arrow, arr, first, second, (***), (&&&))
+import Control.Arrow (Arrow, arr, first, second, (&&&), (***))
 import Control.Category (Category, (<<<))
-import qualified Control.Category
-import Karamaan.Opaleye.QueryArr (Tag, first3, next, tagWith, start,
-                                  QueryArr(QueryArr))
-import Database.HaskellDB.Query (ShowConstant, showConstant)
-import Karamaan.Opaleye.Wire (Wire(Wire))
-import qualified Karamaan.Opaleye.Wire as Wire
-import qualified Database.HaskellDB.PrimQuery as PQ
-import Karamaan.Plankton.Arrow (replaceWith, foldrArr, opC)
-import Karamaan.Opaleye.Operators (operatorName)
+import Data.Map (Map)
 import Data.Profunctor (Profunctor, dimap)
 import Data.Profunctor.Product (ProductProfunctor, empty, (***!))
 import Data.Time.Calendar (Day)
-import qualified Karamaan.Opaleye.Values as Values
-import qualified Karamaan.Opaleye.Unpackspec as U
-import qualified Data.Profunctor.Product as P
+import Database.HaskellDB.PrimQuery (Literal, PrimExpr, extend)
+import Database.HaskellDB.Query (ShowConstant, showConstant)
+import Karamaan.Opaleye.Operators (operatorName)
+import Karamaan.Opaleye.QueryArr (QueryArr (QueryArr), Tag, first3, next, start, tagWith)
+import Karamaan.Opaleye.Wire (Wire (Wire))
+import Karamaan.Plankton.Arrow (foldrArr, opC, replaceWith)
+import Prelude hiding (abs, and, mod, not, or, signum)
+import qualified Control.Category
+import qualified Data.List                       as List
+import qualified Data.Map                        as Map
+import qualified Data.Profunctor.Product         as P
 import qualified Data.Profunctor.Product.Default as D
-import qualified Data.List as List
+import qualified Database.HaskellDB.PrimQuery    as PQ
+import qualified Karamaan.Opaleye.Unpackspec     as U
+import qualified Karamaan.Opaleye.Values         as Values
+import qualified Karamaan.Opaleye.Wire           as Wire
+import qualified Prelude
 
 -- This is a more type-safe way, and a nicer API, to doing the PrimExpr
 -- fiddling that Predicates.hs does.  When there's time we'll convert
@@ -94,6 +98,14 @@ newtype ExprArr a b = ExprArr ((a, Scope, Tag) -> (b, Scope, Tag))
 instance Applicative (ExprArr a) where
   pure = arr . const
   f <*> x = arr (uncurry ($)) <<< (f &&& x)
+
+instance (Num b, ShowConstant b) => Num (ExprArr a (Wire b)) where
+  f + g    = plus   <<< (f &&& g)
+  f - g    = minus  <<< (f &&& g)
+  f * g    = mul    <<< (f &&& g)
+  abs    f = abs    <<< f
+  signum f = signum <<< f
+  fromInteger = constantRC . fromInteger
 
 type Expr b = ExprArr () b
 
