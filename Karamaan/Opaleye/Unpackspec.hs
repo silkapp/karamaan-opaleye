@@ -78,6 +78,21 @@ pcT8 :: ProductContravariant f => T8 (f a1) (f a2) (f a3) (f a4)
             -> f (T8 a1 a2 a3 a4 a5 a6 a7 a8)
 pcT8 = chain pcT7
 
+pcT9 :: ProductContravariant f => T9 (f a1) (f a2) (f a3) (f a4)
+               (f a5) (f a6) (f a7) (f a8) (f a9)
+            -> f (T9 a1 a2 a3 a4 a5 a6 a7 a8 a9)
+pcT9 = chain pcT8
+
+pcT10 :: ProductContravariant f => T10 (f a1) (f a2) (f a3) (f a4)
+               (f a5) (f a6) (f a7) (f a8) (f a9) (f a10)
+            -> f (T10 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10)
+pcT10 = chain pcT9
+
+pcT11 :: ProductContravariant f => T11 (f a1) (f a2) (f a3) (f a4)
+               (f a5) (f a6) (f a7) (f a8) (f a9) (f a10) (f a11)
+            -> f (T11 a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 a11)
+pcT11 = chain pcT10
+
 pcT :: ProductContravariant f => f a -> f a
 pcT = pcT1
 
@@ -111,3 +126,18 @@ pc8 :: ProductContravariant f => (f a1, f a2, f a3, f a4,
             f a5, f a6, f a7, f a8)
            -> f (a1, a2, a3, a4, a5, a6, a7, a8)
 pc8 = convert unflatten8 unflatten8 pcT8
+
+pc9 :: ProductContravariant f => (f a1, f a2, f a3, f a4,
+            f a5, f a6, f a7, f a8, f a9)
+           -> f (a1, a2, a3, a4, a5, a6, a7, a8, a9)
+pc9 = convert unflatten9 unflatten9 pcT9
+
+pc10 :: ProductContravariant f => (f a1, f a2, f a3, f a4,
+            f a5, f a6, f a7, f a8, f a9, f a10)
+           -> f (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
+pc10 = convert unflatten10 unflatten10 pcT10
+
+pc11 :: ProductContravariant f => (f a1, f a2, f a3, f a4,
+            f a5, f a6, f a7, f a8, f a9, f a10, f a11)
+           -> f (a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11)
+pc11 = convert unflatten11 unflatten11 pcT11
