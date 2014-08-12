@@ -49,6 +49,10 @@ module Karamaan.Opaleye.ExprArr
     , runCase
     , ifThenElse
     , caseMassage
+    , cast
+    , lower
+    , coalesce
+    , coalesceText
     ) where
 
 import Control.Applicative (Applicative (..))
@@ -57,6 +61,7 @@ import Control.Category (Category, (<<<))
 import Data.Map (Map)
 import Data.Profunctor (Profunctor, dimap)
 import Data.Profunctor.Product (ProductProfunctor, empty, (***!))
+import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Database.HaskellDB.PrimQuery (Literal, PrimExpr, extend)
 import Database.HaskellDB.Query (ShowConstant, showConstant)
@@ -70,6 +75,7 @@ import qualified Data.List                       as List
 import qualified Data.Map                        as Map
 import qualified Data.Profunctor.Product         as P
 import qualified Data.Profunctor.Product.Default as D
+import qualified Data.Text                       as T
 import qualified Database.HaskellDB.PrimQuery    as PQ
 import qualified Karamaan.Opaleye.Unpackspec     as U
 import qualified Karamaan.Opaleye.Values         as Values
@@ -351,3 +357,26 @@ unsafeScopeLookup' :: String -> Scope -> PrimExpr
 unsafeScopeLookup' w s = case Map.lookup w s of
   Nothing -> error ("Could not find Wire " ++ w ++ " in scope")
   Just a  -> a
+
+lower :: ExprArr (Wire Text) (Wire Text)
+lower = unFun "lower" "lower"
+
+-- TODO unsafe
+-- TODO Accepts multiple columns
+coalesce :: ShowConstant s => s -> ExprArr (Wire (Maybe a)) (Wire a)
+coalesce lit = makeExprArr wireName primExpr
+  where wireName u = "coalesce_" ++ take 5 v
+          where Wire v = u
+        primExpr lookupS (Wire u) = PQ.FunExpr "coalesce" [uExpr, PQ.ConstExpr (showConstant lit)]
+          where uExpr = lookupS u
+
+coalesceText :: Text -> ExprArr (Wire (Maybe Text)) (Wire Text)
+coalesceText = coalesce . T.unpack
+
+-- TODO unsafe
+cast :: String -> ExprArr (Wire a) (Wire b)
+cast ty = makeExprArr wireName primExpr
+  where wireName u = "cast_" ++ take 5 v
+          where Wire v = u
+        primExpr lookupS (Wire u) = PQ.CastExpr ty uExpr
+          where uExpr = lookupS u
