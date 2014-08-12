@@ -135,6 +135,9 @@ instance Default QueryRunner (Wire (Maybe Bool)) (Maybe Bool) where
 instance Default QueryRunner (Wire (Maybe UUID)) (Maybe UUID) where
   def = fieldQueryRunner
 
+instance (FromField a, Default QueryRunner (Wire (Maybe a)) (Maybe a)) => Default QueryRunner (Wire (Maybe (Maybe a))) (Maybe (Maybe a)) where
+  def = fieldQueryRunner
+
 -- Reflection stuff, see
 -- https://github.com/ekmett/reflection/blob/master/examples/Monoid.hs
 newtype FR a s = FR { runFR :: a }
